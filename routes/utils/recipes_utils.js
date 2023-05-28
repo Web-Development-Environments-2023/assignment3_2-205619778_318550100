@@ -154,6 +154,7 @@ exports.getRecipeDetails = getRecipeDetails;
 exports.getRandomThreeRecipes = getRandomThreeRecipes;
 exports.getFullRecipeDetails = getFullRecipeDetails;
 exports.getFilteredSearchRecipes =getFilteredSearchRecipes;
+exports.extractRecipesDetails=extractRecipesDetails;
 
 
 

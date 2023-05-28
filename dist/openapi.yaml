@@ -305,7 +305,7 @@ paths:
               type: object
               properties:
                 recipeId:
-                  type: string
+                  type: integer
                   description: reciepe's id which the user saved
                   example: 716429
       responses:
