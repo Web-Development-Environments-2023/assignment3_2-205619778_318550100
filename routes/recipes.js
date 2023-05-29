@@ -21,8 +21,8 @@ router.get("/RecipeDetailsAPI/:recipeId", async (req, res, next) => {
  */
 router.get('/search', async (req,res,next) => {
   try {
-    let m_recipes = await recipes_utils.getFilteredSearchRecipes(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance,req.query.sort);
-    res.send(m_recipes);
+    let sreach_recipes = await recipes_utils.getSearchRecipes(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance,req.query.sort);
+    res.send(sreach_recipes);
   } catch (error) {
     next(error);
   }

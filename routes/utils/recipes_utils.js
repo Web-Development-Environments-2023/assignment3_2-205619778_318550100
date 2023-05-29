@@ -108,19 +108,24 @@ async function getFullRecipeDetails(recipe_id) {
 }
 
 // get recipe details from spooncular API
-async function getFilteredSearchRecipes(query, number, cuisine, diet, intolerance,sort){
+async function getSearchRecipes(query, number, cuisine, diet, intolerance,sort,counter=0){
     if(number === undefined){
         number=5;
     }
-    let searchRes = await getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort) ;
-    let filterdSearchRes = searchRes.results.filter((random)=>(random.analyzedInstructions.length != 0))
-    return extractRecipesDetails(filterdSearchRes);
+    let search_result = await getRecipesFromSearchAPI(query, number, cuisine, diet, intolerance,sort) ;
+    // we want to filter the recipes that dosent have instruction
+    let filter_search_result = search_result.results.filter((random)=>(random.analyzedInstructions.length != 0))
+    if(filter_search_result.length < number - counter && search_result.totalResults >= number){
+        counter++;
+        return getSearchRecipes(query, number+1, cuisine, diet, intolerance,sort,user_id,counter);
+    }
+    return extractRecipesDetails(filter_search_result);
 }
 
 /**get the recipes from the API spooncular
  number: if not choosen send default 5 
  query: the recipe name**/
-async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort) { 
+async function getRecipesFromSearchAPI(query, number, cuisine, diet, intolerance,sort) { 
     let search_url= `${api_domain}/complexSearch/?query=${query}`
     if(cuisine !== undefined){
         search_url = search_url + `&cuisine=${cuisine}`
@@ -136,7 +141,6 @@ async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,so
     }
     search_url = search_url + `&instructionsRequired=true&addRecipeInformation=true` 
     search_url = search_url + `&number=${number}`
-    console.log(search_url);
     const response = await axios.get(search_url,{
         
         params: {
@@ -147,13 +151,12 @@ async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,so
 
 }
 
-// https://api.spoonacular.com/recipes/complexSearch?query=pasta&maxFat=25&number=2
 
 
 exports.getRecipeDetails = getRecipeDetails;
 exports.getRandomThreeRecipes = getRandomThreeRecipes;
 exports.getFullRecipeDetails = getFullRecipeDetails;
-exports.getFilteredSearchRecipes =getFilteredSearchRecipes;
+exports.getSearchRecipes =getSearchRecipes;
 exports.extractRecipesDetails=extractRecipesDetails;
 
 
