@@ -362,7 +362,7 @@ paths:
       tags:
       - Users
       summary: get a detail of recipes that the user search
-      description: A json object contains details about the recipes
+      description: A json object contains details about the recipes include the last search (if exist)
       parameters:
         - in: query
           name: Recipes name
