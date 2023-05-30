@@ -280,7 +280,7 @@ paths:
           description: bad input parameter
 
           
-  /users/favorite:
+  /users/favorites:
     get:
       tags:
       - Users
