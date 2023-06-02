@@ -185,6 +185,25 @@ paths:
           description: A new recipe has been added
         '400':
           description: wrong input parameter    
+  
+  /users/myRecipesFull: 
+    get:
+      tags:
+      - Users
+      summary: get a the details of recipe that the user created
+      description: A json object contains all the details about this recipe
+
+      responses:
+        '200':
+          description: A the details of a recipe that the user created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DetailRecipe'
+        '400':
+          description: bad input parameter 
           
   /users/familyRecipes:
     get:
@@ -263,25 +282,6 @@ paths:
                   $ref: '#/components/schemas/Recipe'
         '400':
           description: bad input parameter
-
-    post:
-      tags:
-        - Users
-      summary: returns the last watched recipes that were saved by the logged-in user
-      description: The recipes enter to the last watched recipes of the user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Recipe'
-        description: Inventory item to add
-      responses:
-        '201':
-          description: A new recipe has been added to last wached 
-        '400':
-          description: wrong input parameter  
-          
           
   /users/lastSearch:
     get:
