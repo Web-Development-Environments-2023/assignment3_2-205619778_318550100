@@ -1,7 +1,7 @@
 const axios = require("axios");
 const { response } = require("express");
 const api_domain = "https://api.spoonacular.com/recipes";
-
+const user_utils = require("./user_utils");
 
 
 /**
@@ -19,12 +19,12 @@ async function getRecipeInformation(recipe_id) {
     });
 }
 
-
-
-async function getRecipeDetails(recipe_id) {
+//get preview recipe details by recipe_id
+async function getRecipePreviewDetails(recipe_id, user_id) {
     let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
-
+    let {id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree} = recipe_info.data;
+    let isWatched = await user_utils.checkIsWatchedRecipe(user_id, id);
+    let isFavorite = await user_utils.checkIsFavoriteRecipe(user_id, id);
     return {
         id: id,
         title: title,
@@ -34,30 +34,21 @@ async function getRecipeDetails(recipe_id) {
         vegan: vegan,
         vegetarian: vegetarian,
         glutenFree: glutenFree,
-        
+        isWatched: isWatched,
+        isFavorite: isFavorite,
     }
 }
-//get random recipes from spooncolar api
-async function getRandomRecipes(){
-    const response = await axios.get(`${api_domain}/random`, {
-        params: {
-            limitLicense: true,
-            number: 5,
-            apiKey: process.env.spooncular_apiKey
-        }
-    }); 
-    return response;
-}
 
-//extract the details from list of recipes
-function extractRecipesDetails(recipes_info){
-    return recipes_info.map((recipe_info) => {
+//get recipe details from list of recipes
+async function getRecipesPreviewDetails(recipes_info, user_id){
+    return await Promise.all(recipes_info.map(async (recipe_info) => {
         let data = recipe_info;
         if (recipe_info.data){
             data = recipe_info.data;
         }
-        let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = data;
-
+        let {id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree} = data;
+        let isWatched = await user_utils.checkIsWatchedRecipe(user_id, id);
+        let isFavorite = await user_utils.checkIsFavoriteRecipe(user_id, id);
         return {
             id: id,
             title: title,
@@ -67,30 +58,23 @@ function extractRecipesDetails(recipes_info){
             vegan: vegan,
             vegetarian: vegetarian,
             glutenFree: glutenFree,      
+            isWatched: isWatched,
+            isFavorite: isFavorite,
         }
-    })
+    }))
 }
 
-//get random recipes and filter them that they have at least image and instruction
-async function getRandomThreeRecipes(){
-    let random_recipes = await getRandomRecipes();
-    let filter_random_recipes = random_recipes.data.recipes.filter((random) => (random.instructions != "") && (random.image && random.image != ""));
-    if (filter_random_recipes.length < 3) {
-        return getRandomThreeRecipes();
-    }
-    return extractRecipesDetails([filter_random_recipes[0], filter_random_recipes[1], filter_random_recipes[2]]);
-}
-
-
-async function getFullRecipeDetails(recipe_id) {
+//get full recipe details by recipe_id
+async function getRecipeFullDetails(recipe_id, user_id) {
     let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,analyzedInstructions,extendedIngredients,servings} = recipe_info.data;
+    let {id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,analyzedInstructions,extendedIngredients,servings} = recipe_info.data;
+    let isWatched = await user_utils.checkIsWatchedRecipe(user_id, id);
+    let isFavorite = await user_utils.checkIsFavoriteRecipe(user_id, id);
     let ingredients_dict = [];
-    extendedIngredients.map((element) => ingredients_dict.push({
+    await Promise.all(extendedIngredients.map(async (element) => ingredients_dict.push({
         name: element.name,
         amount: element.amount,
-    }))
-   
+    })))
         return {
             id: id,
             title: title,
@@ -100,64 +84,70 @@ async function getFullRecipeDetails(recipe_id) {
             vegan: vegan,
             vegetarian: vegetarian,
             glutenFree: glutenFree,
-            extendedIngredients: ingredients_dict,
-            analyzedInstructions: analyzedInstructions,  
+            ingredients: ingredients_dict,
+            instructions: analyzedInstructions,  
             servings: servings,
-       
+            isWatched: isWatched,
+            isFavorite: isFavorite,
         } 
 }
 
-// get recipe details from spooncular API
-async function getSearchRecipes(query, number, cuisine, diet, intolerance,sort,counter=0){
-    if(number === undefined){
-        number=5;
+//get preview details of 3 random recipes
+async function getThreeRandomRecipes(user_id){
+    let random_recipes = await getRandomRecipes(5);
+    //filter them that they have at least image and instruction
+    let filter_random_recipes = random_recipes.data.recipes.filter((random) => (random.instructions != "") && (random.image && random.image != ""));
+    if (filter_random_recipes.length < 3) {
+        return getThreeRandomRecipes(user_id);
     }
-    let search_result = await getRecipesFromSearchAPI(query, number, cuisine, diet, intolerance,sort) ;
-    // we want to filter the recipes that dosent have instruction
-    let filter_search_result = search_result.results.filter((random)=>(random.analyzedInstructions.length != 0))
-    if(filter_search_result.length < number - counter && search_result.totalResults >= number){
-        counter++;
-        return getSearchRecipes(query, number+1, cuisine, diet, intolerance,sort,user_id,counter);
-    }
-    return extractRecipesDetails(filter_search_result);
+    return getRecipesPreviewDetails([filter_random_recipes[0], filter_random_recipes[1], filter_random_recipes[2]], user_id);
 }
-
-/**get the recipes from the API spooncular
- number: if not choosen send default 5 
- query: the recipe name**/
-async function getRecipesFromSearchAPI(query, number, cuisine, diet, intolerance,sort) { 
-    let search_url= `${api_domain}/complexSearch/?query=${query}`
-    if(cuisine !== undefined){
-        search_url = search_url + `&cuisine=${cuisine}`
-    }
-    if(diet !== undefined){
-        search_url = search_url + `&diet=${diet}`
-    }
-    if(intolerance !== undefined){
-        search_url = search_url + `&intolerance=${intolerance}`
-    }
-    if(sort !== undefined){
-        search_url = search_url + `&sort=${sort}`
-    }
-    search_url = search_url + `&instructionsRequired=true&addRecipeInformation=true` 
-    search_url = search_url + `&number=${number}`
-    const response = await axios.get(search_url,{
-        
+//get random recipes from spooncolar api
+async function getRandomRecipes(number){
+    const response = await axios.get(`${api_domain}/random`, {
         params: {
+            limitLicense: true,
+            number: number,
             apiKey: process.env.spooncular_apiKey
         }
+    }); 
+    return response;
+}
+
+// get recipes preview from the spooncular API query search
+// default nuber of recipes is 5
+async function getSearchRecipes(query, number, cuisine, diet, intolerance){
+    if(number === undefined){
+        number = 5;
+    }
+    let search_result = await getRecipesFromSearchAPI(query, number, cuisine, diet, intolerance) ;
+    return getRecipesPreviewDetails(search_result.results);
+}
+
+// get the recipes data from the spooncular API query search
+ async function getRecipesFromSearchAPI(searchQuery, searchNumber, searchCuisine, searchDiet, searchIntolerance) { 
+    const response = await axios.get(`${api_domain}/complexSearch`, {
+        params: {
+            query: searchQuery,
+            number: searchNumber,
+            cuisine: searchCuisine,
+            diet: searchDiet,
+            intolerances: searchIntolerance,
+            instructionsRequired: true,
+            addRecipeInformation: true,
+            apiKey: process.env.spooncular_apiKey,
+        },
     });
     return response.data;
-
 }
 
 
 
-exports.getRecipeDetails = getRecipeDetails;
-exports.getRandomThreeRecipes = getRandomThreeRecipes;
-exports.getFullRecipeDetails = getFullRecipeDetails;
+exports.getRecipePreviewDetails = getRecipePreviewDetails;
+exports.getThreeRandomRecipes = getThreeRandomRecipes;
+exports.getRecipeFullDetails = getRecipeFullDetails;
 exports.getSearchRecipes =getSearchRecipes;
-exports.extractRecipesDetails=extractRecipesDetails;
+exports.getRecipesPreviewDetails=getRecipesPreviewDetails;
 
 
 

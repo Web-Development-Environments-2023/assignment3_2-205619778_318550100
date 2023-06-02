@@ -1,119 +1,97 @@
 openapi: 3.0.0
 info:
-  title: Recipes api
-  description: API for recipes project
-  version: 1.0.1
+  title: Recipes API
+  description: API for recipes project.
+  version: 1.0.0
 servers:
 # local:
 - url: "http://127.0.0.1:3000"
 # remote:
 # - url: "http://132.72.65.211"
   description: SwaggerHub API Auto Mocking hey
-tags:
-- name: admins
-  description: Secured Admin-only calls
-- name: developers
-  description: Operations available to regular developers
 paths:
   /Login:
     post:
       tags:
         - Auth
-      summary: User exist in DB and want to log in
-      description: Check if the user exist, if not throw error
+      summary: Login an exist user
+      description: An exist user login to the system
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Login'
-        description: Inventory Iteam to add
       responses:
         '200':
-          description: User exist 
-        '400':
-          description: Wrong Input parameter
+          description: Login succeeded
+        '401':
+          description: Username or Password incorrect
           
   /Register:
     post:
       tags:
         - Auth
-      summary: A new user from Client is added to Server
+      summary: A new user from the client is added to the server
+      description: A JSON object contains all the details about the user
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
-        description: Inventory Iteam to add
       responses:
         '201':
-          description: A new user has been added
+          description: User created
         '400':
-          description: Wrong Input parameter
+          description: Wrong input parameters
+        '409':
+          description: Username taken
           
   /Logout:
     post:
       tags:
         - Auth
-      summary: The user from the client logout from the server
-      description: A message logout succeeded.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-        description: Inventory item to add
+      summary: Logout a user from the system
+      description: Log the user out of the system and delete his cookie
       responses:
-        '201':
-          description: The user logout
-        '400':
-          description: something happend 
+        '200':
+          description: Logout succeeded
           
   /recipes/random:
     get:
       tags:
       - Recipes
-      summary: get a list of 3 recipes from the recipes API
-      description: A json object contains all the details about the recipes
-
+      summary: Return three random recipes
+      description: Return preview details of three random recipes
       responses:
         '200':
-          description: A list of a recipes
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Recipe'
-        '400':
-          description: bad input parameter
+          description: Three recipes preview details
         
   /recipes/{recipeId}:
     get:
       tags:
       - Recipes
-      summary: get a detail of recipe
-      description: A json object contains the preview details about this recipe
+      summary: return full details of recipe
+      description: A json object contains the full details about this recipe
       parameters: 
        - name: recipeId
-         description: Recipes id
+         description: Recipe unique id
          in: path
          required: true
          schema:
           type: string
       responses:
         '200':
-          description: A detail of a recipe
+          description: Recipe full details
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DetailRecipe'
-        '400':
-          description: bad input parameter
+        '404':
+          description: recipeId does not exist
           
   /recipes/search:
     get:
@@ -171,59 +149,7 @@ paths:
         '400':
           description: bad input parameter 
 
-          
-  /recipes/RecipeDetailsAPI/{recipe_id}:
-    get:
-      tags:
-      - Recipes
-      summary: get a full details of recipe in the spooncular API
-      description: A json object contains all the details about this recipe
-      parameters: 
-       - name: recipe_id
-         description: Recipes id
-         in: path
-         required: true
-         schema:
-          type: string
-      responses:
-        '200':
-          description: A full details of a recipe in the spooncular API
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DetailRecipe'
-        '400':
-          description: bad input parameter     
-    
-           
-  /users/RecipeDetailsDB/{recipe_id}:
-    get:
-      tags:
-      - Users
-      summary: get a full details of recipe in the DB
-      description: A json object contains all the details about this recipe
-      parameters: 
-       - name: recipe_id
-         description: Recipes id
-         in: path
-         required: true
-         schema:
-          type: string
-      responses:
-        '200':
-          description: A full details of a recipe in the DB
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DetailRecipe'
-        '400':
-          description: bad input parameter
-
-  /users/CreateRecipe: 
+  /users/myRecipes: 
     get:
       tags:
       - Users
@@ -357,7 +283,7 @@ paths:
           description: wrong input parameter  
           
           
-  /users/search:
+  /users/lastSearch:
     get:
       tags:
       - Users
@@ -460,14 +386,6 @@ components:
           description: >
             password contains between 5 to 10 chars,
             at least one of them is number and spatial char
-          example: maor@123
-        password confirmation :
-          type: string
-          minLength: 5
-          maxLength: 10
-          format: password
-          description: >
-            password need to be equal to first password
           example: maor@123
         email:
           type: string
