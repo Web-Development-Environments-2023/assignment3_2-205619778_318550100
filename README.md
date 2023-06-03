@@ -3,16 +3,19 @@
 # Web development environments course - 3.2 Assignment
 
 
+
 ## About Us ✌ 
 
 * Name: Kalanit Segal
 
     ID: 318550100
 
-    EMAIL: kalanits@post.bgu.ac.il
-
 * Name: Maor Biton
 
     ID: 205619778
 
-    EMAIL: maorbtn@post.bgu.ac.il
+
+
+## API link
+
+https://app.swaggerhub.com/apis/KALAS/myAPI/1.0.0

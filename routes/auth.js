@@ -19,6 +19,11 @@ router.post("/Register", async (req, res, next) => {
       // profilePic: req.body.profilePic
     }
 
+    // Check if all required parameters are provided
+    if (!user_details.username || !user_details.firstname || !user_details.lastname || !user_details.country || !user_details.password || !user_details.email) {
+      throw { status: 400, message: `Missing required parameters`};
+    }
+
     let users = [];
     users = await DButils.execQuery("SELECT username from users");
 
@@ -74,5 +79,6 @@ router.post("/Logout", function (req, res) {
   req.session.reset(); // reset the session info --> send cookie when  req.session == undefined!!
   res.status(200).send({ success: true, message: "Logout succeeded" });
 });
+
 
 module.exports = router;

@@ -12,7 +12,10 @@ router.get("/", (req, res) => res.send("im here"));
 router.get('/search', async (req,res,next) => {
   try {
     const user_id = req.session.user_id;
-    let search_recipes = await recipes_utils.getSearchRecipes(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance,req.query.sort);
+    if (!req.query.query) {
+      throw { status: 400, message: "query is missing"};
+    }
+    let search_recipes = await recipes_utils.getSearchRecipes(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance);
     if (user_id){
       req.session.lastSearch = search_recipes;
     }

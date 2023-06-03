@@ -13,8 +13,13 @@ async function getFavoriteRecipes(user_id){
     return recipes_id;
 }
 
-async function getFamilyRecipes(user_id){
-    const recipes_details = await DButils.execQuery(`select recipe_id as id, title,image,readyInMinutes, vegan, vegetarian, glutenFree, creator, customary, ingredients, instructions, servings, imgstep1, imgstep2, imgstep3, imgstep4, imgstep5, imgstep6  from familyrecipes where user_id='${user_id}'`);
+async function getPreviewFamilyRecipes(user_id){
+    const recipes_details = await DButils.execQuery(`select id, title, readyInMinutes, image, vegan, vegetarian, glutenFree from familyrecipes where user_id='${user_id}'`);
+    return recipes_details;
+}
+
+async function getFullFamilyRecipes(user_id, recipe_id){
+    const recipes_details = await DButils.execQuery(`select id, title, readyInMinutes, image, vegan, vegetarian, glutenFree, creator, customary, ingredients, instructions, servings from familyrecipes where user_id='${user_id}' and id='${recipe_id}'`);
     return recipes_details;
 }
 
@@ -27,6 +32,11 @@ async function createPrivateRecipes(user_id, Recipe){
 
 async function getPreviewPrivateRecipe(user_id){
     const private_recipe = await DButils.execQuery(`select id, title, readyInMinutes, image, vegan, vegetarian, glutenFree from privaterecipes WHERE user_id='${user_id}'`)
+    return private_recipe;
+}
+
+async function getFullPrivateRecipe(user_id, recipe_id){
+    const private_recipe = await DButils.execQuery(`select id, title, readyInMinutes, image, vegan, vegetarian, glutenFree, ingredients, instructions, servings from privaterecipes WHERE id='${recipe_id}' and user_id='${user_id}'`)
     return private_recipe;
 }
 
@@ -51,12 +61,15 @@ async function getLastWatchedRecipes(user_id, number){
     return recipes_id;
 }
 
+
 exports.markAsFavorite = markAsFavorite;
 exports.markAsWatched = markAsWatched;
 exports.getFavoriteRecipes = getFavoriteRecipes;
-exports.getFamilyRecipes = getFamilyRecipes;
+exports.getPreviewFamilyRecipes = getPreviewFamilyRecipes;
+exports.getFullFamilyRecipes = getFullFamilyRecipes;
 exports.createPrivateRecipes = createPrivateRecipes;
 exports.getPreviewPrivateRecipe = getPreviewPrivateRecipe;
+exports.getFullPrivateRecipe = getFullPrivateRecipe;
 exports.checkIsWatchedRecipe = checkIsWatchedRecipe;
 exports.checkIsFavoriteRecipe = checkIsFavoriteRecipe;
 exports.getLastWatchedRecipes = getLastWatchedRecipes;
