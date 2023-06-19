@@ -28,7 +28,7 @@ router.post('/myRecipes', async (req,res,next) => {
     const user_id = req.session.user_id;
     let {title, readyInMinutes, image, vegan, vegetarian, glutenFree, ingredients, instructions, servings} = req.body;
     // Check if all required parameters are provided
-    if (!title || !readyInMinutes || !image || !vegan || !vegetarian || !glutenFree || !ingredients || !instructions || !servings) {
+    if (!title || !readyInMinutes || !image || !ingredients || !instructions || !servings) {
       throw { status: 400, message: `Missing required parameters`};
     }
     // If all parameters are provided
@@ -163,6 +163,7 @@ router.get('/lastWatchedRecipes', async (req,res,next) => {
     for(let i=0; i<recipes_id_array.length;i++){
       last_watched_recipes.push(await recipe_utils.getRecipePreviewDetails(recipes_id_array[i],user_id))
     }
+
     res.status(200).send(last_watched_recipes);
   } catch(error){
     next(error); 
