@@ -6,6 +6,9 @@ info:
 servers:
 # local:
 # Added by API Auto Mocking Plugin
+# Added by API Auto Mocking Plugin
+- description: SwaggerHub API Auto Mocking
+  url: https://virtserver.swaggerhub.com/KALAS/myAPI/1.0.0
 - description: SwaggerHub API Auto Mocking
   url: https://virtserver.swaggerhub.com/KALANITSEGAL/myAPI/1.0.0
 - url: "http://127.0.0.1:3000"
@@ -305,6 +308,24 @@ paths:
       responses:
         '200':
           description: Three last watched recipes preview details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+        '401':
+          description: Unauthorized
+          
+  /users/allWatchedRecipes:
+    get:
+      tags:
+      - Users
+      summary: Return the user's watched recipes
+      description: A json object which contains preview details about the wacthed recipes of the logged-in user.
+      responses:
+        '200':
+          description: The watched recipes preview details
           content:
             application/json:
               schema:

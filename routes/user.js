@@ -171,6 +171,25 @@ router.get('/lastWatchedRecipes', async (req,res,next) => {
 });
 
 /**
+ * This path returns all the recipes that the logged-in user watched
+ */
+router.get('/allWatchedRecipes', async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id;
+    const recipes_id = await user_utils.getAllWatchedRecipes(user_id);
+    let recipes_id_array = []
+    let watched_recipes = [];
+    recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
+    for(let i=0; i<recipes_id_array.length;i++){
+      watched_recipes.push(await recipe_utils.getRecipePreviewDetails(recipes_id_array[i],user_id))
+    }
+    res.status(200).send(watched_recipes);
+  } catch(error){
+    next(error); 
+  }
+});
+
+/**
  * This path returns the last search results of the logged-in user.
  * If the user disconnects from the site/connects from another browser, 
  * the last search results will not be shown.
